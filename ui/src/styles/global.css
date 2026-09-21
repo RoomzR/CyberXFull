@@ -1,0 +1,245 @@
+@import 'tailwindcss';
+@import './premium.css';
+
+@theme {
+  /* ── Core palette (Buster / Gonzo style) ── */
+  --color-cyber-bg: #050508;
+  --color-cyber-bg-elevated: #0a0a0f;
+  --color-cyber-surface: #111116;
+  --color-cyber-surface-alt: #12121a;
+  --color-cyber-surface-hover: #16161c;
+
+  /* Accent — surgical use only */
+  --color-cyber-accent: #ff1a1a;
+  --color-cyber-accent-muted: rgba(255, 26, 26, 0.12);
+
+  /* Legacy aliases (used across existing components) */
+  --color-cyber-primary: #ff1a1a;
+  --color-cyber-secondary: #cc1515;
+  --color-cyber-dark: #1a0a0a;
+  --color-cyber-card: #111116;
+  --color-cyber-muted: rgba(255, 255, 255, 0.45);
+
+  /* Typography */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-family-mono: var(--font-mono);
+
+  /* Spacing rhythm (4px grid) */
+  --spacing-section: 6rem;
+  --spacing-section-sm: 4rem;
+
+  /* Motion */
+  --ease-premium: cubic-bezier(0.25, 1, 0.5, 1);
+  --duration-fast: 200ms;
+  --duration-normal: 400ms;
+  --duration-slow: 700ms;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-cyber-bg text-white/90 font-[family-name:var(--font-body)] antialiased;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-[family-name:var(--font-display)] uppercase tracking-tighter;
+    line-height: 1.05;
+  }
+
+  ::selection {
+    background: rgba(255, 26, 26, 0.25);
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #050508;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.14);
+  }
+}
+
+@layer utilities {
+  /* ── Glassmorphism ── */
+  .glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .glass-hover {
+    @apply transition-all duration-300;
+    transition-timing-function: var(--ease-premium);
+  }
+
+  .glass-hover:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-4px);
+  }
+
+  /* ── Ambient glow orbs ── */
+  .ambient-orb {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(120px);
+  }
+
+  .ambient-orb-accent {
+    background: rgba(255, 26, 26, 0.06);
+  }
+
+  .ambient-orb-white {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  /* ── Typography helpers ── */
+  .text-display {
+    @apply font-[family-name:var(--font-display)] uppercase tracking-widest;
+  }
+
+  .text-body-muted {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .text-body-subtle {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  /* ── CTA buttons ── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-8 py-3.5 text-sm font-semibold uppercase tracking-widest text-white;
+    background: var(--color-cyber-accent);
+    transition: all 300ms var(--ease-premium);
+  }
+
+  .btn-primary:hover {
+    background: #e01515;
+    box-shadow: 0 8px 32px rgba(255, 26, 26, 0.2);
+    transform: translateY(-4px);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98) translateY(0);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-8 py-3.5 text-sm font-semibold uppercase tracking-widest text-white/90;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all 300ms var(--ease-premium);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-4px);
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.98) translateY(0);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-8 py-3.5 text-sm font-semibold uppercase tracking-widest;
+    color: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all 300ms var(--ease-premium);
+  }
+
+  .btn-ghost:hover {
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-4px);
+  }
+
+  .btn-ghost:active {
+    transform: scale(0.98) translateY(0);
+  }
+
+  /* ── Focus ring for inputs ── */
+  .input-premium {
+    @apply w-full px-4 py-3 text-sm text-white/90 placeholder:text-white/30;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: border-color 300ms var(--ease-premium), box-shadow 300ms var(--ease-premium);
+  }
+
+  .input-premium:focus {
+    outline: none;
+    border-color: rgba(255, 26, 26, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 26, 26, 0.08);
+  }
+
+  /* ── Section layout ── */
+  .section-padding {
+    @apply px-4 py-20 md:px-6 md:py-28;
+  }
+
+  .section-container {
+    @apply mx-auto w-full max-w-6xl;
+  }
+
+  /* ── Subpixel border ── */
+  .border-subtle {
+    border: 1px solid rgba(255, 255, 255, 0.03);
+  }
+
+  .border-subtle-strong {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* ── Legacy compat (removed in section-by-section redesign) ── */
+  .text-gradient-hero {
+    @apply text-white;
+  }
+
+  .glitch-text {
+    /* glitch effect intentionally removed — premium minimalism */
+  }
+
+  .neon-border {
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    @apply transition-colors duration-300;
+    transition-timing-function: var(--ease-premium);
+  }
+
+  .neon-border:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}

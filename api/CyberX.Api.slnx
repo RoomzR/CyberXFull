@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CyberX.Business/CyberX.Business.csproj" />
+    <Project Path="src/CyberX.Data/CyberX.Data.csproj" />
+    <Project Path="src/CyberX.Domain/CyberX.Domain.csproj" />
+    <Project Path="src/CyberX.WebApi/CyberX.WebApi.csproj" />
+  </Folder>
+</Solution>

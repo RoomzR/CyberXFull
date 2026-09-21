@@ -1,0 +1,182 @@
+{
+  "nav": {
+    "home": "Главная",
+    "about": "О клубе",
+    "stats": "В цифрах",
+    "advantages": "Преимущества",
+    "tariffs": "Тарифы",
+    "tournaments": "Турниры",
+    "events": "События",
+    "teams": "Рейтинг",
+    "reviews": "Отзывы",
+    "faq": "FAQ",
+    "contact": "Контакты"
+  },
+  "hero": {
+    "badge": "Premium Esports · Гомель",
+    "module_badge": "ТЕРРИТОРИЯ СВЕРХВЫСОКИХ ЧАСТОТ",
+    "slogan": "Следующий уровень твоей игры",
+    "online": "Онлайн",
+    "scroll_label": "Scroll",
+    "scroll_to_about": "Прокрутить к разделу о клубе",
+    "deck_live": "Прямо сейчас",
+    "stations": "Станций",
+    "disciplines": "Дисциплин",
+    "cta_tournaments": "Турниры",
+    "cta_tariffs": "Тарифы",
+    "cta_contact": "Связаться"
+  },
+  "about": {
+    "hardware": "Флагман GPU",
+    "monitors": "Pro-мониторы",
+    "city_rank": "В городе"
+  },
+  "sections": {
+    "about": "О клубе",
+    "about_sub": "Манифест и инфраструктура",
+    "about_heading_suffix": " · О клубе",
+    "stats": "CyberX в цифрах",
+    "stats_sub": "Масштаб, который чувствуется",
+    "stats_heading_suffix": " в цифрах",
+    "stats_community": "СООБЩЕСТВО",
+    "stats_footnote": "От 32 станций — к экосистеме, которая растёт каждый день",
+    "stats_chip_club": "CYBERX",
+    "stats_chip_city": "GOMEL",
+    "stats_chip_esports": "ESPORTS",
+    "stats_chip_always": "24/7",
+    "tariffs": "Тарифы",
+    "tariffs_sub": "Standard · Stage · Bootcamp · PSS Room",
+    "advantages": "Преимущества",
+    "advantages_sub": "Почему выбирают CyberX",
+    "advantages_heading_suffix": " EDGE",
+    "tournaments": "Турниры",
+    "tournaments_sub": "CyberX League и открытые кубки",
+    "events": "События",
+    "events_sub": "Активности клуба",
+    "teams": "Топ команды",
+    "teams_sub": "Рейтинг участников лиги",
+    "reviews": "Отзывы",
+    "reviews_sub": "Голос комьюнити",
+    "faq": "Частые вопросы",
+    "faq_sub": "Ответы на главное",
+    "contact": "Контакты",
+    "contact_sub": "Как нас найти",
+    "games": "Дисциплины"
+  },
+  "stats": {
+    "pcs": "Игровых ПК",
+    "tournaments": "Турниров проведено",
+    "teams": "Команд в рейтинге",
+    "players": "Игроков в сообществе"
+  },
+  "tariffs": {
+    "book": "Забронировать",
+    "currency": "BYN",
+    "weekday": "Будни",
+    "weekend": "Выходные",
+    "weekday_weekend": "будни / выходные",
+    "time_slots": "Временные слоты",
+    "summer_hours": "08:00–17:00",
+    "zones": {
+      "standard": "Standard",
+      "stage": "Stage",
+      "bootcamp": "Bootcamp",
+      "pss": "PSS Room"
+    },
+    "rows": {
+      "1h": "1 час",
+      "3h": "3 часа",
+      "5h": "5 часов",
+      "fullday": "Сутки",
+      "summer": "Лето"
+    },
+    "slots": {
+      "morning": "Утро",
+      "day": "День",
+      "night": "Ночь"
+    }
+  },
+  "advantages": {
+    "hardware": { "title": "Топ-железо", "desc": "RTX 40-серия и мониторы 360Hz", "tag": "PERFORMANCE" },
+    "internet": { "title": "1 Гбит/с", "desc": "Стабильный пинг для соревнований", "tag": "NETWORK" },
+    "tournaments": { "title": "Турниры", "desc": "CyberX League каждый сезон", "tag": "COMPETITIVE" },
+    "coaches": { "title": "Тренеры", "desc": "Разбор демо и спарринги", "tag": "COACHING" },
+    "lounge": { "title": "Lounge-зона", "desc": "Отдых между катками", "tag": "COMFORT" },
+    "events": { "title": "Ивенты", "desc": "Стримы, косплей, комьюнити", "tag": "COMMUNITY" }
+  },
+  "reviews": {
+    "r1": { "text": "Лучший клуб в Гомеле. Железо топ, атмосфера огонь. Турниры по CS2 — отдельный вайб.", "author": "Артём К.", "role": "CS2 игрок" },
+    "r2": { "text": "VIP-комната для нашей команды — идеально. Тренер помог выйти в финал лиги.", "author": "Мария В.", "role": "Valorant капитан" },
+    "r3": { "text": "Красный неон, премиум-ощущение. Прихожу каждую пятницу на LoL Night.", "author": "Денис Л.", "role": "LoL игрок" }
+  },
+  "tournament": {
+    "prize": "Призовой фонд",
+    "register": "Регистрация",
+    "rules": "Регламент",
+    "countdown": "До старта",
+    "date": "Дата",
+    "status_registration": "Регистрация",
+    "status_upcoming": "Скоро",
+    "status_ongoing": "Идёт",
+    "status_finished": "Завершён"
+  },
+  "team": {
+    "rating": "Рейтинг",
+    "winrate": "Винрейт",
+    "wins": "Побед",
+    "losses": "Поражений",
+    "wins_short": "W",
+    "losses_short": "L"
+  },
+  "event": {
+    "tournament": "Турнир",
+    "bootcamp": "Буткемп",
+    "community": "Комьюнити",
+    "days_ago": "Дней назад",
+    "upcoming": "Скоро"
+  },
+  "contact": { "phone": "Телефон", "address": "Адрес", "social": "Соцсети" },
+  "social": {
+    "instagram": "Instagram",
+    "telegram": "Telegram"
+  },
+  "footer": {
+    "rights": "CyberX Community. Все права защищены.",
+    "made": "Premium esports · Gomel",
+    "rules": "Правила",
+    "follow": "Подписаться"
+  },
+  "loading": "Загрузка...",
+  "error": "Не удалось загрузить данные. Проверьте, что API запущен на порту 5006.",
+  "admin": {
+    "login_title": "Панель администратора",
+    "login_hint": "Введите API-ключ для управления турнирами",
+    "api_key": "API-ключ",
+    "enter": "Войти",
+    "login_error": "Неверный ключ",
+    "back_site": "На сайт",
+    "tournaments": "Управление турнирами",
+    "new_tournament": "Новый турнир",
+    "edit_tournament": "Редактирование турнира",
+    "edit": "Изменить",
+    "delete": "Удалить",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "logout": "Выйти",
+    "back_list": "К списку",
+    "col_title": "Название",
+    "col_game": "Игра",
+    "col_status": "Статус",
+    "col_prize": "Приз",
+    "col_featured": "На главной",
+    "field_title": "Название",
+    "field_description": "Описание",
+    "field_start": "Начало",
+    "field_end": "Конец",
+    "field_registration": "Ссылка на регистрацию",
+    "field_rules": "Ссылка на регламент",
+    "confirm_delete": "Удалить турнир?",
+    "load_error": "Ошибка загрузки. Проверьте API-ключ.",
+    "save_error": "Не удалось сохранить"
+  }
+}

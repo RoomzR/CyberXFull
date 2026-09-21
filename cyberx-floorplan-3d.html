@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberX Гомель — 3D Планировка</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#000; overflow:hidden; font-family:'Courier New',monospace; }
+
+#tooltip {
+  position:fixed; top:14px; left:50%; transform:translateX(-50%);
+  background:rgba(0,4,18,.95); border:1px solid #00d4ff;
+  color:#00d4ff; padding:8px 18px; font-size:12px; border-radius:6px;
+  display:none; pointer-events:none; white-space:nowrap;
+  box-shadow:0 0 20px rgba(0,212,255,.4); text-shadow:0 0 6px #00d4ff; z-index:200;
+}
+
+#panel {
+  position:fixed; top:12px; right:12px;
+  background:rgba(2,3,20,.95); border:1px solid #440088;
+  color:#fff; width:220px; max-height:calc(100vh - 24px);
+  border-radius:8px; box-shadow:0 0 28px rgba(80,0,160,.5); z-index:200;
+  display:flex; flex-direction:column;
+}
+#panel-title {
+  color:#cc00ff; text-align:center; font-size:11px;
+  text-transform:uppercase; letter-spacing:3px; text-shadow:0 0 10px #cc00ff;
+  padding:10px 12px 8px; border-bottom:1px solid rgba(100,0,200,.3); flex-shrink:0;
+}
+#panel-scroll { overflow-y:auto; flex:1; padding:6px 10px 10px; }
+#panel-scroll::-webkit-scrollbar { width:3px; }
+#panel-scroll::-webkit-scrollbar-track { background:transparent; }
+#panel-scroll::-webkit-scrollbar-thumb { background:#440088; border-radius:2px; }
+.zone-group { margin-bottom:8px; }
+.zone-hdr {
+  font-size:9px; text-transform:uppercase; letter-spacing:2px;
+  padding:4px 0 3px; border-bottom:1px solid; margin-bottom:4px;
+  font-weight:bold;
+}
+.zone-hdr.stage    { color:#0088ff; border-color:rgba(0,136,255,.3); }
+.zone-hdr.bootcamp { color:#00cc55; border-color:rgba(0,200,80,.3); }
+.zone-hdr.standart { color:#aa44ff; border-color:rgba(160,64,255,.3); }
+.pc-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:3px 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:10px;
+}
+.pc-row:last-child { border-bottom:none; }
+.pc-nm { color:#aaa; }
+.s-free { color:#00ff88; text-shadow:0 0 4px #00ff88; font-size:9px; }
+.s-busy { color:#ff4444; text-shadow:0 0 4px #ff4444; font-size:9px; }
+.cx {
+  margin-left:3px; color:#ff6666; cursor:pointer; font-size:8px;
+  background:rgba(255,0,0,.12); border:1px solid rgba(255,0,0,.3);
+  border-radius:2px; padding:1px 3px;
+}
+.cx:hover { background:rgba(255,0,0,.35); color:#fff; }
+
+#modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,12,.78);
+  display:none; justify-content:center; align-items:center;
+  z-index:300; backdrop-filter:blur(4px);
+}
+#modal-box {
+  background:rgba(4,4,22,.98); border:1px solid #00d4ff;
+  color:#fff; padding:30px 36px; border-radius:12px; text-align:center;
+  box-shadow:0 0 55px rgba(0,210,255,.55); max-width:400px; width:90%;
+  animation:mIn .28s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes mIn { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:scale(1)} }
+#modal-box h2 { font-size:20px; color:#00d4ff; text-shadow:0 0 14px #00d4ff; letter-spacing:4px; margin-bottom:14px; }
+#mtext { font-size:12px; color:#999; line-height:1.8; margin-bottom:20px; }
+.btns { display:flex; gap:12px; justify-content:center; }
+.byes,.bno { padding:9px 22px; border:none; cursor:pointer; border-radius:5px; font-family:'Courier New',monospace; font-size:11px; text-transform:uppercase; letter-spacing:1.5px; font-weight:bold; transition:all .2s; }
+.byes { background:linear-gradient(135deg,#5500bb,#8800ff); color:#fff; box-shadow:0 0 18px rgba(130,0,255,.45); }
+.byes:hover { background:linear-gradient(135deg,#7700dd,#aa00ff); transform:translateY(-1px); }
+.bno { background:transparent; color:#777; border:1px solid #333; }
+.bno:hover { border-color:#666; color:#ccc; }
+
+#hud {
+  position:fixed; bottom:14px; left:50%; transform:translateX(-50%);
+  background:rgba(0,3,16,.82); border:1px solid rgba(0,200,255,.2);
+  color:rgba(0,200,255,.5); padding:6px 20px; font-size:10px;
+  border-radius:20px; pointer-events:none; z-index:200; letter-spacing:1px;
+}
+
+.slbl {
+  background:rgba(0,5,22,.88); border:1px solid rgba(0,180,255,.4);
+  color:#00d4ff; padding:1px 6px; font-size:9px;
+  font-family:'Courier New',monospace; border-radius:3px;
+  pointer-events:none; white-space:nowrap;
+  text-shadow:0 0 4px #00d4ff;
+}
+.slbl.bkd { border-color:rgba(255,50,50,.4); color:#ff4444; text-shadow:0 0 4px #ff4444; }
+.room-label {
+  color:rgba(255,255,255,.6); font-size:10px; font-family:'Courier New',monospace;
+  pointer-events:none; white-space:nowrap; text-transform:uppercase; letter-spacing:1px;
+}
+.zone-label {
+  font-size:12px; font-family:'Courier New',monospace; font-weight:bold;
+  pointer-events:none; white-space:nowrap; text-transform:uppercase; letter-spacing:2px;
+}
+</style>
+</head>
+<body>
+
+<div id="tooltip"></div>
+<div id="panel">
+  <div id="panel-title">⬡ CyberX Гомель — 45 ПК</div>
+  <div id="panel-scroll"><div id="pclist"></div></div>
+</div>
+
+<div id="modal-overlay">
+  <div id="modal-box">
+    <h2>БРОНИРОВАНИЕ</h2>
+    <p id="mtext"></p>
+    <div class="btns">
+      <button class="byes" id="byes">ДА — ЗАБРОНИРОВАТЬ</button>
+      <button class="bno"  id="bno">НЕТ</button>
+    </div>
+  </div>
+</div>
+
+<div id="hud">КОЛЕСО — ZOOM &nbsp;·&nbsp; ТЯГА — ВРАЩЕНИЕ &nbsp;·&nbsp; КЛИК — БРОНЬ &nbsp;·&nbsp; НАВЕДЕНИЕ — ИНФО</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three":          "https://unpkg.com/three@0.165.0/build/three.module.js",
+    "three/addons/":  "https://unpkg.com/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls }             from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+/* ================================================================
+   ZONE CONFIG
+================================================================ */
+const ZONES = {
+  STAGE:    { label:'STAGE',    specs:'Intel i7-12700KF · RTX 4070 Ti · 16GB DDR4 · AOC 240GZ 25" · HyperX', price:'200 BYN/ч', emi:0x003366, light:0x0066ff, floor:0x00112e },
+  BOOTCAMP: { label:'BOOTCAMP', specs:'Intel i7-12700F  · RTX 4070    · 16GB DDR4 · AOC 240GZ 25" · HyperX', price:'180 BYN/ч', emi:0x002a11, light:0x00cc55, floor:0x001408 },
+  STANDART: { label:'STANDART', specs:'Intel i5-12400F  · RTX 4060    · 16GB DDR4 · AOC 240GZ 25" · HyperX', price:'150 BYN/ч', emi:0x1a0044, light:0x8844ff, floor:0x0e0022 },
+};
+
+/* ================================================================
+   PC DATA  — positions based on actual floor plan
+   ry = rotation around Y axis (which way monitor faces)
+   ry=-PI/2 → faces +X (east),  ry=PI/2 → faces -X (west)
+   ry=0     → faces -Z (north), ry=PI   → faces +Z (south)
+================================================================ */
+const H = Math.PI / 2;
+const PI = Math.PI;
+const PCS = [
+  // ── STAGE  (1-10): vertical column x=-6, z 0..18 ──────────────
+  {id: 1,zone:'STAGE',   x:-6, z:18, ry:-H},
+  {id: 2,zone:'STAGE',   x:-6, z:16, ry:-H},
+  {id: 3,zone:'STAGE',   x:-6, z:14, ry:-H},
+  {id: 4,zone:'STAGE',   x:-6, z:12, ry:-H},
+  {id: 5,zone:'STAGE',   x:-6, z:10, ry:-H},
+  {id: 6,zone:'STAGE',   x:-6, z: 8, ry:-H},
+  {id: 7,zone:'STAGE',   x:-6, z: 6, ry:-H},
+  {id: 8,zone:'STAGE',   x:-6, z: 4, ry:-H},
+  {id: 9,zone:'STAGE',   x:-6, z: 2, ry:-H},
+  {id:10,zone:'STAGE',   x:-6, z: 0, ry:-H},
+
+  // ── BOOTCAMP  (11-15): КРАНШТЕЙНЫ row, z=20 ────────────────────
+  {id:11,zone:'BOOTCAMP',x:-6, z:20, ry:0},
+  {id:12,zone:'BOOTCAMP',x:-10,z:20, ry:0},
+  {id:13,zone:'BOOTCAMP',x:-14,z:20, ry:0},
+  {id:14,zone:'BOOTCAMP',x:-18,z:20, ry:0},
+  {id:15,zone:'BOOTCAMP',x:-22,z:20, ry:0},
+
+  // ── STANDART  lower block col-A (16-20) ─────────────────────────
+  {id:16,zone:'STANDART',x:-20,z: 4, ry:-H},
+  {id:17,zone:'STANDART',x:-20,z: 2, ry:-H},
+  {id:18,zone:'STANDART',x:-20,z: 0, ry:-H},
+  {id:19,zone:'STANDART',x:-20,z:-2, ry:-H},
+  {id:20,zone:'STANDART',x:-20,z:-4, ry:-H},
+
+  // ── STANDART  upper block col-A (21-25) ─────────────────────────
+  {id:21,zone:'STANDART',x:-20,z:-8, ry:-H},
+  {id:22,zone:'STANDART',x:-20,z:-10,ry:-H},
+  {id:23,zone:'STANDART',x:-20,z:-12,ry:-H},
+  {id:24,zone:'STANDART',x:-20,z:-14,ry:-H},
+  {id:25,zone:'STANDART',x:-20,z:-16,ry:-H},
+
+  // ── STANDART  lower block col-B (26-30) ─────────────────────────
+  {id:26,zone:'STANDART',x:-16,z: 4, ry:H},
+  {id:27,zone:'STANDART',x:-16,z: 2, ry:H},
+  {id:28,zone:'STANDART',x:-16,z: 0, ry:H},
+  {id:29,zone:'STANDART',x:-16,z:-2, ry:H},
+  {id:30,zone:'STANDART',x:-16,z:-4, ry:H},
+
+  // ── STANDART  upper block col-B (31-35) ─────────────────────────
+  {id:31,zone:'STANDART',x:-16,z:-8, ry:H},
+  {id:32,zone:'STANDART',x:-16,z:-10,ry:H},
+  {id:33,zone:'STANDART',x:-16,z:-12,ry:H},
+  {id:34,zone:'STANDART',x:-16,z:-14,ry:H},
+  {id:35,zone:'STANDART',x:-16,z:-16,ry:H},
+
+  // ── STANDART  right column (36-45) ──────────────────────────────
+  {id:36,zone:'STANDART',x:-10,z: 0, ry:-H},
+  {id:37,zone:'STANDART',x:-10,z:-2, ry:-H},
+  {id:38,zone:'STANDART',x:-10,z:-4, ry:-H},
+  {id:39,zone:'STANDART',x:-10,z:-6, ry:-H},
+  {id:40,zone:'STANDART',x:-10,z:-8, ry:-H},
+  {id:41,zone:'STANDART',x:-10,z:-10,ry:-H},
+  {id:42,zone:'STANDART',x:-10,z:-12,ry:-H},
+  {id:43,zone:'STANDART',x:-10,z:-14,ry:-H},
+  {id:44,zone:'STANDART',x:-10,z:-16,ry:-H},
+  {id:45,zone:'STANDART',x:-10,z:-18,ry:-H},
+];
+
+const booked = Array(PCS.length).fill(false);
+
+/* ================================================================
+   THREE.JS INIT
+================================================================ */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x020310);
+scene.fog = new THREE.FogExp2(0x020310, 0.013);
+
+const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 300);
+camera.position.set(-8, 38, 34);
+camera.lookAt(-8, 0, 2);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const css2d = new CSS2DRenderer();
+css2d.setSize(innerWidth,innerHeight);
+Object.assign(css2d.domElement.style,{position:'fixed',top:'0',left:'0',pointerEvents:'none',zIndex:'100'});
+document.body.appendChild(css2d.domElement);
+
+const controls = new OrbitControls(camera,renderer.domElement);
+Object.assign(controls,{enableDamping:true,dampingFactor:0.06,minDistance:8,maxDistance:80,maxPolarAngle:Math.PI/2.1});
+controls.target.set(-8,0,2);
+
+/* ================================================================
+   LIGHTS
+================================================================ */
+scene.add(new THREE.AmbientLight(0x0c0c22,0.9));
+
+function ptL(col,i,d,x,y,z){ const l=new THREE.PointLight(col,i,d); l.position.set(x,y,z); l.castShadow=true; scene.add(l); return l; }
+
+const lB = ptL(0x0066ff,3,50,-25,9,-14);
+const lP = ptL(0x8800ff,3,50,-5, 9,-14);
+const lG = ptL(0x00cc55,2,40,-12,9, 14);
+const lR = ptL(0xff0066,2,40, 12,8, 8);
+const lC = ptL(0x00ccff,2,35,-8, 9,-2);
+
+/* ================================================================
+   ROOM GEOMETRY
+================================================================ */
+const RH = 8;        // room height
+const wallMat  = new THREE.MeshStandardMaterial({color:0x06071a, roughness:.95, metalness:.05});
+const floorMat = new THREE.MeshStandardMaterial({color:0x030318, roughness:.08, metalness:.95});
+const ceilMat  = new THREE.MeshStandardMaterial({color:0x04041a, roughness:.9});
+
+/* ── Main floor ── */
+function addFloor(w,d,x,z,mat){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat??floorMat);
+  m.rotation.x=-Math.PI/2; m.position.set(x,0,z); m.receiveShadow=true; scene.add(m); return m;
+}
+addFloor(38,48,-7,-2);   // main gaming floor
+addFloor(20,30,16, 8);   // service wing floor
+
+/* Grid lines */
+function addGrid(w,d,x,z){ const g=new THREE.GridHelper(1,1,0x001133,0x000b22); g.scale.set(w,1,d); g.position.set(x,.01,z); scene.add(g); }
+addGrid(38,48,-7,-2);
+addGrid(20,30,16, 8);
+
+/* ── Zone floor tints ── */
+function zoneTile(w,d,x,z,col){
+  const m=new THREE.MeshStandardMaterial({color:col,roughness:.1,metalness:.8,transparent:true,opacity:.35});
+  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,d),m);
+  mesh.rotation.x=-Math.PI/2; mesh.position.set(x,.02,z); scene.add(mesh);
+}
+zoneTile(8, 22,-6,  9, 0x001133);   // STAGE zone
+zoneTile(10, 4,-12, 20, 0x002211);  // BOOTCAMP zone
+zoneTile(14,26,-18, -5, 0x0a0022);  // STANDART left cols
+zoneTile(4, 22,-10, -9, 0x0d0033);  // STANDART right col
+
+/* ── Walls ── */
+function wall(gw,gh,gd,x,y,z,ry=0){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(gw,gh,gd),wallMat);
+  m.position.set(x,y,z); if(ry) m.rotation.y=ry; m.receiveShadow=true; scene.add(m); return m;
+}
+// Main room outer walls
+wall(38.6,RH,.3,  -7,RH/2,-26);      // north
+wall(.3,  RH,48.6,-26,RH/2,-2);      // west
+wall(38.6,RH,.3,  -7,RH/2, 22);      // south main
+wall(.3,  RH,26,   8,RH/2,-15);      // east main (partial up)
+
+// Service wing walls
+wall(20.6,RH,.3, 16,RH/2,-6);        // north service
+wall(.3,  RH,30, 26,RH/2, 8);        // east service
+wall(20.6,RH,.3, 16,RH/2,22);        // south service (shared)
+wall(.3,  RH, 8,  6,RH/2, 18);       // partial wall (ВХОД area separator)
+
+// Ceiling
+function ceiling(w,d,x,z){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),ceilMat);
+  m.rotation.x=Math.PI/2; m.position.set(x,RH,z); scene.add(m);
+}
+ceiling(38,48,-7,-2);
+ceiling(20,30,16, 8);
+
+/* ── Internal partition walls (corridor separators) ── */
+wall(12,.3,.15,-8,-0.05,-7,0);       // aisle between upper/lower blocks (floor line)
+
+/* ================================================================
+   NEON TUBES
+================================================================ */
+function neonTube(x1,y1,z1,x2,y2,z2,col,gi=1.4){
+  const d=new THREE.Vector3(x2-x1,y2-y1,z2-z1),l=d.length();
+  const mid=new THREE.Vector3((x1+x2)/2,(y1+y2)/2,(z1+z2)/2);
+  const mat=new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:5});
+  const mesh=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,l,8),mat);
+  mesh.position.copy(mid); mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize()); scene.add(mesh);
+  const pl=new THREE.PointLight(col,gi,14); pl.position.copy(mid); scene.add(pl);
+}
+const cy=RH-.25;
+// Ceiling perimeter — main room
+neonTube(-26,cy,-26,14,cy,-26,0x0088ff,1.8);   // north — blue
+neonTube(-26,cy,-26,-26,cy,22,0x8800ff,1.8);   // west — purple
+neonTube(-26,cy,22, 8, cy,22,0x00cc55,1.8);    // south main — green
+neonTube( 8, cy,-26, 8, cy,-6,0x00ccff,1.8);   // east main partial — cyan
+// Ceiling perimeter — service
+neonTube( 8, cy,-6, 26,cy,-6,0x00ccff,1.4);
+neonTube(26, cy,-6, 26,cy,22,0xff0066,1.4);
+neonTube( 8, cy,22, 26,cy,22,0xff9900,1.4);
+// Lower accent strips
+neonTube(-26,1.1,-26,14,1.1,-26,0x00ccff,0.8);
+neonTube(-26,1.1,-26,-26,1.1,22,0x4400ff,0.8);
+
+/* ================================================================
+   CYBERX SIGN
+================================================================ */
+{
+  const cv=document.createElement('canvas'); cv.width=1024; cv.height=256;
+  const ctx=cv.getContext('2d');
+  ctx.font="bold 88px 'Courier New',monospace"; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(let i=5;i>=1;i--){ ctx.shadowColor='#00d4ff'; ctx.shadowBlur=i*18; ctx.globalAlpha=i===1?1:.28; ctx.fillStyle=i===1?'#fff':'#00d4ff'; ctx.fillText('CYBERX ГОМЕЛЬ',512,128); }
+  ctx.globalAlpha=1;
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(14,3.5),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,side:THREE.DoubleSide}));
+  sign.position.set(-7,cy-1,-25.6); scene.add(sign);
+  const sl=new THREE.PointLight(0x00d4ff,3,18); sl.position.set(-7,cy-1,-24); scene.add(sl);
+  const ul=new THREE.Mesh(new THREE.BoxGeometry(14,.06,.06),new THREE.MeshStandardMaterial({color:0x00d4ff,emissive:0x00d4ff,emissiveIntensity:7}));
+  ul.position.set(-7,cy-3,-25.6); scene.add(ul);
+}
+
+/* ================================================================
+   ZONE SIGN BOARDS (wall-mounted)
+================================================================ */
+function zoneBoard(text,subtext,x,y,z,ry,textCol,glowCol){
+  const bw=8,bh=2.5;
+  const bg=new THREE.Mesh(new THREE.BoxGeometry(bw,.05,bh),new THREE.MeshStandardMaterial({color:0x040414,roughness:.4,metalness:.7}));
+  bg.position.set(x,y,z); bg.rotation.y=ry; scene.add(bg);
+
+  const cv=document.createElement('canvas'); cv.width=512; cv.height=160;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='rgba(0,0,0,.9)'; ctx.fillRect(0,0,512,160);
+  ctx.font="bold 54px 'Courier New',monospace"; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.shadowColor=glowCol; ctx.shadowBlur=20; ctx.fillStyle=textCol; ctx.fillText(text,256,60);
+  ctx.font="16px 'Courier New',monospace"; ctx.fillStyle='rgba(200,200,200,.7)'; ctx.shadowBlur=0; ctx.fillText(subtext,256,110);
+  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(bw-.3,bh-.3),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,side:THREE.DoubleSide}));
+  mesh.position.set(x,y+.04,z); mesh.rotation.y=ry; scene.add(mesh);
+  const pl=new THREE.PointLight(new THREE.Color(glowCol),1.5,10); pl.position.set(x,y+1,z); scene.add(pl);
+}
+
+// Zone boards (horizontal, mounted near ceiling on wall)
+zoneBoard('STAGE',    '1-10 PC · RTX 4070 Ti', 7.6,5.5,-16, -Math.PI/2, '#00aaff','#0066ff');
+zoneBoard('BOOTCAMP', '11-15 PC · RTX 4070',   7.6,5.5, -6, -Math.PI/2, '#00ee66','#00aa44');
+zoneBoard('STANDART', '16-45 PC · RTX 4060',   7.6,5.5,  8, -Math.PI/2, '#bb66ff','#8844ff');
+
+/* ================================================================
+   SERVICE AREA ELEMENTS
+================================================================ */
+function serviceBox(w,d,cx,cz,col,label,labelCol){
+  const mat=new THREE.MeshStandardMaterial({color:col,roughness:.5,metalness:.3});
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,.04,d),mat);
+  m.position.set(cx,.03,cz); scene.add(m);
+  if(label){
+    const ld=document.createElement('div'); ld.className='room-label';
+    ld.textContent=label; ld.style.color=labelCol||'rgba(255,255,255,.5)';
+    const lo=new CSS2DObject(ld); lo.position.set(cx,0.5,cz); scene.add(lo);
+  }
+}
+
+// Admin desk
+function adminDesk(x,z){
+  const g=new THREE.Group();
+  const top=new THREE.Mesh(new THREE.BoxGeometry(3,.09,1.2),new THREE.MeshStandardMaterial({color:0x111130,metalness:.7,roughness:.3}));
+  top.position.y=.9; g.add(top);
+  const front=new THREE.Mesh(new THREE.BoxGeometry(3,.9,.06),new THREE.MeshStandardMaterial({color:0x0a0a24,metalness:.8,roughness:.2}));
+  front.position.set(0,.45,.6); g.add(front);
+  // glow strip
+  const glow=new THREE.Mesh(new THREE.BoxGeometry(3,.04,.04),new THREE.MeshStandardMaterial({color:0x0066ff,emissive:0x0066ff,emissiveIntensity:4}));
+  glow.position.set(0,.96,.6); g.add(glow);
+  g.position.set(x,0,z); scene.add(g);
+}
+adminDesk(11,8);
+
+// Service room tiles
+serviceBox(6,4,11,-1,  0x080818,'КАМЕРА\nХРАНЕНИЯ','rgba(180,180,255,.5)');
+serviceBox(7,3,21,-3,  0x060614,'ВХОД','rgba(255,220,100,.6)');
+serviceBox(3,2,23, 2,  0x0a0a1a,'WS','rgba(150,150,200,.5)');
+serviceBox(3,2,23, 6,  0x0a0a1a,'WS','rgba(150,150,200,.5)');
+serviceBox(5,4,22,12,  0x0c0820,'STAFF','rgba(180,160,255,.5)');
+serviceBox(6,5,22,19,  0x120a08,'БАР','rgba(255,160,80,.6)');
+serviceBox(5,5,22,23,  0x0a1008,'КУХНЯ','rgba(100,220,100,.5)');
+
+// TV2, TV3 (left wall lounge)
+function wallTV(x,z,ry,label){
+  const g=new THREE.Group();
+  const frame=new THREE.Mesh(new THREE.BoxGeometry(2.8,1.7,.08),new THREE.MeshStandardMaterial({color:0x080818,metalness:.9,roughness:.1}));
+  g.add(frame);
+  const cv=document.createElement('canvas'); cv.width=256; cv.height=144;
+  const ctx=cv.getContext('2d'); ctx.fillStyle='#001020'; ctx.fillRect(0,0,256,144);
+  ctx.font="bold 28px Courier New"; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='#00aaff'; ctx.shadowColor='#00aaff'; ctx.shadowBlur=15; ctx.fillText(label,128,72);
+  const scr=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.5),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv)}));
+  scr.position.z=.05; g.add(scr);
+  const glow=new THREE.PointLight(0x0066cc,1.5,5); glow.position.set(0,0,.3); g.add(glow);
+  g.position.set(x,2.5,z); g.rotation.y=ry; scene.add(g);
+}
+wallTV(-25.6,12.5,Math.PI/2,'TV2');
+wallTV(-25.6,17.5,Math.PI/2,'TV3');
+wallTV(7.8,3,   -Math.PI/2,'TV1');
+
+// КРАНШТЕЙНЫ zone floor label
+{
+  const ld=document.createElement('div'); ld.className='room-label';
+  ld.textContent='КРАНШТЕЙНЫ'; ld.style.color='rgba(0,220,100,.6)'; ld.style.fontSize='11px';
+  const lo=new CSS2DObject(ld); lo.position.set(-14,0.3,20); scene.add(lo);
+}
+
+/* ================================================================
+   SHARED STATION GEOMETRIES
+================================================================ */
+const G = {
+  desk:   new THREE.BoxGeometry(1.8,.08,1.2),
+  mon:    new THREE.BoxGeometry(1.4,.88,.075),
+  screen: new THREE.PlaneGeometry(1.3,.78),
+  stand:  new THREE.CylinderGeometry(.03,.04,.42,8),
+  kb:     new THREE.BoxGeometry(.72,.022,.26),
+  seat:   new THREE.BoxGeometry(.72,.06,.72),
+  backr:  new THREE.BoxGeometry(.72,.7,.06),
+};
+const M = {
+  black:  new THREE.MeshStandardMaterial({color:0x080818,roughness:.25,metalness:.8}),
+  dark:   new THREE.MeshStandardMaterial({color:0x0b0b20,roughness:.5,metalness:.45}),
+  metal:  new THREE.MeshStandardMaterial({color:0x060616,metalness:.92,roughness:.1}),
+  chair:  new THREE.MeshStandardMaterial({color:0x0c0c20,roughness:.7}),
+};
+
+/* ================================================================
+   PC STATION FACTORY
+================================================================ */
+function makeScreenTex(id,zone){
+  const cv=document.createElement('canvas'); cv.width=256; cv.height=128;
+  const ctx=cv.getContext('2d');
+  const bg=ctx.createLinearGradient(0,0,0,128);
+  bg.addColorStop(0,'#001840'); bg.addColorStop(1,'#000a22');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,256,128);
+  for(let sl=0;sl<128;sl+=4){ ctx.fillStyle='rgba(0,0,0,.18)'; ctx.fillRect(0,sl,256,2); }
+  ctx.font='bold 40px Courier New'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  const zc={STAGE:'#00aaff',BOOTCAMP:'#00ee66',STANDART:'#bb66ff'}[zone]||'#00aaff';
+  ctx.shadowColor=zc; ctx.shadowBlur=20; ctx.fillStyle=zc;
+  ctx.fillText(`#${id}`,128,56);
+  ctx.font='12px Courier New'; ctx.fillStyle='rgba(160,160,200,.55)'; ctx.shadowBlur=0;
+  ctx.fillText(ZONES[zone].label,128,92);
+  ctx.strokeStyle=`${zc}44`; ctx.lineWidth=2; ctx.strokeRect(3,3,250,122);
+  return new THREE.CanvasTexture(cv);
+}
+
+const stations=[], pickMeshes=[];
+
+PCS.forEach((pc,i)=>{
+  const z=ZONES[pc.zone];
+  const g=new THREE.Group();
+  g.position.set(pc.x,0,pc.z);
+  g.rotation.y=pc.ry;
+
+  /* desk */
+  const dMat=new THREE.MeshStandardMaterial({color:0x0d0d22,roughness:.4,metalness:.72,emissive:new THREE.Color(0),emissiveIntensity:0});
+  const desk=new THREE.Mesh(G.desk,dMat);
+  desk.position.y=.85; desk.castShadow=desk.receiveShadow=true; g.add(desk);
+
+  /* desk edge glow */
+  const eMat=new THREE.MeshStandardMaterial({color:z.emi,emissive:z.emi,emissiveIntensity:2.5});
+  const edge=new THREE.Mesh(new THREE.BoxGeometry(1.82,.03,.03),eMat);
+  edge.position.set(0,.895,.61); g.add(edge);
+
+  /* stand */
+  const stand=new THREE.Mesh(G.stand,M.metal);
+  stand.position.set(0,1.1,-.3); g.add(stand);
+
+  /* monitor bezel */
+  const mon=new THREE.Mesh(G.mon,M.black);
+  mon.position.set(0,1.88,-.3); mon.castShadow=true; g.add(mon);
+
+  /* screen */
+  const sEmi=new THREE.Color(z.emi);
+  const sMat=new THREE.MeshStandardMaterial({map:makeScreenTex(pc.id,pc.zone),emissive:sEmi,emissiveIntensity:.5,roughness:.04,metalness:0});
+  const screen=new THREE.Mesh(G.screen,sMat);
+  screen.position.set(0,1.88,-.26);
+  screen.userData.pcIdx=i;
+  g.add(screen); pickMeshes.push(screen);
+
+  /* screen ambient light */
+  const sg=new THREE.PointLight(z.light,.5,3.5);
+  sg.position.set(0,1.88,-.14); g.add(sg);
+
+  /* keyboard */
+  const kb=new THREE.Mesh(G.kb,M.dark);
+  kb.position.set(0,.905,.18); g.add(kb);
+  /* RGB strip */
+  const rgbMat=new THREE.MeshStandardMaterial({color:0x3300aa,emissive:0x3300aa,emissiveIntensity:3});
+  const rgb=new THREE.Mesh(new THREE.BoxGeometry(.7,.009,.01),rgbMat);
+  rgb.position.set(0,.917,.06); g.add(rgb);
+
+  /* chair */
+  const seat=new THREE.Mesh(G.seat,M.chair);
+  seat.position.set(0,.5,.88); g.add(seat);
+  const back=new THREE.Mesh(G.backr,M.chair);
+  back.position.set(0,.88,1.18); g.add(back);
+
+  /* CSS2D label */
+  const ld=document.createElement('div'); ld.className='slbl'; ld.textContent=`#${pc.id}`;
+  const lo=new CSS2DObject(ld); lo.position.set(0,3,-.3); g.add(lo);
+
+  scene.add(g);
+  stations.push({pc,group:g,screen,sMat,dMat,eMat,sg,rgbMat,labelDiv:ld,emiBase:z.emi,lightBase:z.light});
+});
+
+/* ================================================================
+   PARTICLES
+================================================================ */
+const NP=1800, pPos=new Float32Array(NP*3), pCol=new Float32Array(NP*3), pVel=new Float32Array(NP);
+const NCOLS=[[0,.55,1],[.5,0,1],[1,0,.5],[0,.8,.4],[.6,.3,1]];
+for(let i=0;i<NP;i++){
+  pPos[i*3]=(Math.random()-.5)*56+(-7); pPos[i*3+1]=Math.random()*RH; pPos[i*3+2]=(Math.random()-.5)*52;
+  pVel[i]=.003+Math.random()*.005;
+  const c=NCOLS[Math.floor(Math.random()*NCOLS.length)];
+  pCol[i*3]=c[0]; pCol[i*3+1]=c[1]; pCol[i*3+2]=c[2];
+}
+const pG=new THREE.BufferGeometry();
+pG.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+pG.setAttribute('color',   new THREE.BufferAttribute(pCol,3));
+scene.add(new THREE.Points(pG,new THREE.PointsMaterial({size:.05,vertexColors:true,transparent:true,opacity:.65,sizeAttenuation:true})));
+
+/* ================================================================
+   RAYCASTER & INTERACTION
+================================================================ */
+const rc=new THREE.Raycaster(), mNDC=new THREE.Vector2();
+let hovIdx=-1, pendIdx=-1;
+const tooltip=document.getElementById('tooltip');
+const overlay =document.getElementById('modal-overlay');
+const mtext   =document.getElementById('mtext');
+
+function applyHover(idx,on){
+  if(booked[idx]) return;
+  const s=stations[idx], z=ZONES[s.pc.zone];
+  if(on){
+    s.sMat.emissive.setHex(0x0055cc); s.sMat.emissiveIntensity=2.8;
+    s.dMat.emissive.setHex(0x001a44); s.dMat.emissiveIntensity=.8;
+    s.eMat.emissiveIntensity=8;
+    s.sg.intensity=3.5; s.sg.color.setHex(0x0088ff);
+  } else {
+    s.sMat.emissive.setHex(s.emiBase); s.sMat.emissiveIntensity=.5;
+    s.dMat.emissive.setHex(0); s.dMat.emissiveIntensity=0;
+    s.eMat.emissiveIntensity=2.5;
+    s.sg.intensity=.5; s.sg.color.setHex(s.lightBase);
+  }
+}
+function applyBooked(idx){
+  const s=stations[idx];
+  s.sMat.emissive.setHex(0x440000); s.sMat.emissiveIntensity=1.8;
+  s.eMat.color.setHex(0x330000); s.eMat.emissive.setHex(0x440000); s.eMat.emissiveIntensity=4;
+  s.sg.color.setHex(0xff0000); s.sg.intensity=1.2;
+  s.labelDiv.classList.add('bkd');
+}
+function applyFree(idx){
+  const s=stations[idx], z=ZONES[s.pc.zone];
+  s.sMat.emissive.setHex(s.emiBase); s.sMat.emissiveIntensity=.5;
+  s.eMat.color.setHex(s.emiBase); s.eMat.emissive.setHex(s.emiBase); s.eMat.emissiveIntensity=2.5;
+  s.sg.color.setHex(s.lightBase); s.sg.intensity=.5;
+  s.labelDiv.classList.remove('bkd');
+}
+function upNDC(e){ mNDC.x=(e.clientX/innerWidth)*2-1; mNDC.y=-(e.clientY/innerHeight)*2+1; }
+
+window.addEventListener('mousemove',e=>{
+  upNDC(e); rc.setFromCamera(mNDC,camera);
+  const hits=rc.intersectObjects(pickMeshes);
+  if(hits.length>0){
+    const idx=hits[0].object.userData.pcIdx;
+    if(hovIdx!==idx){ if(hovIdx>=0) applyHover(hovIdx,false); hovIdx=idx; applyHover(idx,true); }
+    const {pc}=stations[idx], z=ZONES[pc.zone];
+    tooltip.style.display='block';
+    tooltip.innerHTML=`<b style="color:${['#00aaff','#00ee66','#bb66ff'][['STAGE','BOOTCAMP','STANDART'].indexOf(pc.zone)]}">ПК #${pc.id} [${pc.zone}]</b>`
+      +` &nbsp;|&nbsp; ${z.specs} &nbsp;|&nbsp; <span style="color:#ff00cc">${z.price}</span>`
+      +(booked[idx]?' &nbsp;<span style="color:#ff4444">[ЗАНЯТО]</span>':'');
+    document.body.style.cursor=booked[idx]?'not-allowed':'pointer';
+  } else {
+    if(hovIdx>=0){ applyHover(hovIdx,false); hovIdx=-1; }
+    tooltip.style.display='none'; document.body.style.cursor='default';
+  }
+});
+
+window.addEventListener('click',e=>{
+  upNDC(e); rc.setFromCamera(mNDC,camera);
+  const hits=rc.intersectObjects(pickMeshes);
+  if(!hits.length) return;
+  const idx=hits[0].object.userData.pcIdx;
+  if(booked[idx]) return;
+  pendIdx=idx;
+  const {pc}=stations[idx], z=ZONES[pc.zone];
+  const zc=['STAGE','BOOTCAMP','STANDART'].indexOf(pc.zone);
+  const col=['#00aaff','#00ee66','#bb66ff'][zc];
+  mtext.innerHTML=`<b style="color:${col};font-size:16px">ПК #${pc.id} — ${pc.zone}</b><br>`
+    +`<span style="font-size:11px;color:#666">${z.specs}</span><br>`
+    +`<span style="color:#ff00cc;font-size:14px;font-weight:bold">${z.price}</span><br><br>`
+    +`<span style="color:#ddd;font-size:13px">Забронировать место на <b style="color:${col}">2 часа</b>?</span>`;
+  overlay.style.display='flex'; controls.enabled=false;
+});
+
+document.getElementById('byes').onclick=()=>{
+  if(pendIdx>=0){ booked[pendIdx]=true; applyBooked(pendIdx); buildPanel(); }
+  closeModal();
+};
+document.getElementById('bno').onclick=closeModal;
+overlay.addEventListener('click',e=>{ if(e.target===overlay) closeModal(); });
+function closeModal(){ overlay.style.display='none'; controls.enabled=true; pendIdx=-1; }
+
+/* ================================================================
+   UI PANEL
+================================================================ */
+function buildPanel(){
+  const list=document.getElementById('pclist');
+  list.innerHTML='';
+  const groups=[{zone:'STAGE',cls:'stage'},{zone:'BOOTCAMP',cls:'bootcamp'},{zone:'STANDART',cls:'standart'}];
+  groups.forEach(({zone,cls})=>{
+    const block=document.createElement('div'); block.className='zone-group';
+    const hdr=document.createElement('div'); hdr.className=`zone-hdr ${cls}`;
+    const pcsZ=PCS.filter(p=>p.zone===zone);
+    const freeCount=pcsZ.filter((_,i)=>!booked[PCS.indexOf(pcsZ[i])]).length;
+    hdr.textContent=`${zone} (${freeCount}/${pcsZ.length} свободно)`;
+    block.appendChild(hdr);
+    pcsZ.forEach(pc=>{
+      const i=PCS.indexOf(pc), b=booked[i];
+      const row=document.createElement('div'); row.className='pc-row';
+      row.innerHTML=`<span class="pc-nm">ПК #${pc.id}</span>`
+        +`<span class="${b?'s-busy':'s-free'}">`
+        +(b?`Занято <span class="cx" data-i="${i}">✕</span>`:'Свободно')
+        +`</span>`;
+      block.appendChild(row);
+    });
+    list.appendChild(block);
+  });
+  list.querySelectorAll('.cx').forEach(el=>{
+    el.onclick=e=>{ e.stopPropagation(); const i=+el.dataset.i; booked[i]=false; applyFree(i); buildPanel(); };
+  });
+}
+buildPanel();
+
+/* ================================================================
+   ANIMATION
+================================================================ */
+const clk=new THREE.Clock();
+(function tick(){
+  requestAnimationFrame(tick);
+  const t=clk.getElapsedTime();
+
+  /* particles */
+  for(let i=0;i<NP;i++){
+    pPos[i*3+1]+=pVel[i];
+    if(pPos[i*3+1]>RH){ pPos[i*3+1]=0; pPos[i*3]=(Math.random()-.5)*56+(-7); pPos[i*3+2]=(Math.random()-.5)*52; }
+  }
+  pG.attributes.position.needsUpdate=true;
+
+  /* light pulse */
+  lB.intensity=2.8+Math.sin(t*1.4)*.8;
+  lP.intensity=2.8+Math.sin(t*1.7+1.1)*.8;
+  lG.intensity=2.0+Math.sin(t*1.2+2.2)*.6;
+  lR.intensity=1.8+Math.sin(t*1.9+3.0)*.5;
+
+  /* rainbow keyboards */
+  stations.forEach((s,i)=>{
+    const hue=((t*50+i*8)%360)/360;
+    s.rgbMat.color.setHSL(hue,.9,.4);
+    s.rgbMat.emissive.setHSL(hue,.9,.4);
+  });
+
+  controls.update();
+  renderer.render(scene,camera);
+  css2d.render(scene,camera);
+})();
+
+/* ================================================================
+   RESIZE
+================================================================ */
+window.addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+  css2d.setSize(innerWidth,innerHeight);
+});
+</script>
+</body>
+</html>

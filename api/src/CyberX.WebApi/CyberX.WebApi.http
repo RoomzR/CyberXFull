@@ -1,0 +1,6 @@
+@CyberX.WebApi_HostAddress = http://localhost:5006
+
+GET {{CyberX.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

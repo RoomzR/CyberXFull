@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberX Гомель — 3D Клуб</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#000; overflow:hidden; font-family:'Courier New',Courier,monospace; }
+
+/* ── Tooltip ── */
+#tooltip {
+  position:fixed; top:16px; left:50%; transform:translateX(-50%);
+  background:rgba(0,4,18,0.94); border:1px solid #00d4ff;
+  color:#00d4ff; padding:9px 20px; font-size:13px; border-radius:6px;
+  display:none; pointer-events:none; white-space:nowrap;
+  box-shadow:0 0 22px rgba(0,212,255,0.45);
+  text-shadow:0 0 7px #00d4ff; z-index:150;
+  animation:tipIn .18s ease;
+}
+@keyframes tipIn {
+  from{opacity:0;transform:translateX(-50%) translateY(-6px)}
+  to  {opacity:1;transform:translateX(-50%) translateY(0)}
+}
+
+/* ── UI Panel ── */
+#ui-panel {
+  position:fixed; top:16px; right:16px;
+  background:rgba(2,3,20,0.94); border:1px solid #6600cc;
+  color:#fff; padding:14px 16px; width:238px; border-radius:8px;
+  box-shadow:0 0 30px rgba(100,0,200,0.5); z-index:150;
+}
+#ui-panel .title {
+  color:#cc00ff; text-align:center; margin-bottom:12px;
+  font-size:12px; text-transform:uppercase; letter-spacing:3px;
+  text-shadow:0 0 11px #cc00ff;
+  padding-bottom:9px; border-bottom:1px solid rgba(100,0,200,0.3);
+}
+.pc-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:5px 3px; border-bottom:1px solid rgba(100,0,200,0.13);
+  font-size:11px; border-radius:3px; transition:background .2s;
+}
+.pc-row:last-child{border-bottom:none}
+.pc-nm{color:#bbb}
+.s-free{color:#00ff88;text-shadow:0 0 5px #00ff88}
+.s-busy{color:#ff4444;text-shadow:0 0 5px #ff4444}
+.cx{
+  margin-left:4px; color:#ff6666; cursor:pointer; font-size:9px;
+  background:rgba(255,0,0,0.12); border:1px solid rgba(255,0,0,0.3);
+  border-radius:2px; padding:1px 4px; vertical-align:middle;
+  transition:all .2s;
+}
+.cx:hover{background:rgba(255,0,0,0.3);color:#fff}
+
+/* ── Modal ── */
+#modal-overlay {
+  position:fixed; inset:0;
+  background:rgba(0,0,12,0.78);
+  display:none; justify-content:center; align-items:center;
+  z-index:300; backdrop-filter:blur(4px);
+}
+#modal-box {
+  background:rgba(4,4,22,0.98); border:1px solid #00d4ff;
+  color:#fff; padding:34px 38px; border-radius:12px; text-align:center;
+  box-shadow:0 0 60px rgba(0,210,255,0.55),0 0 120px rgba(0,210,255,0.15);
+  max-width:420px; width:90%;
+  animation:mIn .28s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes mIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+#modal-box h2{
+  font-size:22px; color:#00d4ff;
+  text-shadow:0 0 15px #00d4ff;
+  letter-spacing:5px; margin-bottom:16px;
+}
+#mtext{font-size:13px;color:#999;line-height:1.85;margin-bottom:22px}
+.btns{display:flex;gap:14px;justify-content:center}
+.byes,.bno{
+  padding:10px 26px; border:none; cursor:pointer; border-radius:5px;
+  font-family:'Courier New',monospace; font-size:12px;
+  text-transform:uppercase; letter-spacing:1.5px; font-weight:bold;
+  transition:all .2s;
+}
+.byes{
+  background:linear-gradient(135deg,#6600cc,#9900ff);
+  color:#fff; box-shadow:0 0 20px rgba(150,0,255,0.45);
+}
+.byes:hover{background:linear-gradient(135deg,#8800ee,#bb00ff);box-shadow:0 0 28px rgba(180,0,255,0.7);transform:translateY(-1px)}
+.bno{background:transparent;color:#777;border:1px solid #333}
+.bno:hover{border-color:#666;color:#ccc}
+
+/* ── HUD bar ── */
+#hud{
+  position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+  background:rgba(0,3,16,0.82); border:1px solid rgba(0,200,255,0.22);
+  color:rgba(0,200,255,0.55); padding:7px 22px; font-size:10px;
+  border-radius:20px; pointer-events:none; z-index:150; letter-spacing:1px;
+}
+
+/* ── CSS2D station labels ── */
+.slbl{
+  background:rgba(0,6,26,0.88); border:1px solid rgba(0,190,255,0.45);
+  color:#00d4ff; padding:2px 8px; font-size:10px;
+  font-family:'Courier New',monospace; border-radius:3px;
+  pointer-events:none; white-space:nowrap;
+  text-shadow:0 0 5px #00d4ff; box-shadow:0 0 8px rgba(0,200,255,0.22);
+  transition:color .3s,border-color .3s,box-shadow .3s;
+}
+.slbl.bkd{
+  border-color:rgba(255,50,50,0.45); color:#ff4444;
+  text-shadow:0 0 5px #ff4444; box-shadow:0 0 8px rgba(255,50,50,0.22);
+}
+</style>
+</head>
+<body>
+
+<div id="tooltip"></div>
+
+<div id="ui-panel">
+  <div class="title">⬡ CyberX Гомель</div>
+  <div id="pclist"></div>
+</div>
+
+<div id="modal-overlay">
+  <div id="modal-box">
+    <h2>БРОНИРОВАНИЕ</h2>
+    <p id="mtext"></p>
+    <div class="btns">
+      <button class="byes" id="byes">ДА — ЗАБРОНИРОВАТЬ</button>
+      <button class="bno"  id="bno">НЕТ</button>
+    </div>
+  </div>
+</div>
+
+<div id="hud">КОЛЕСО — ZOOM &nbsp;·&nbsp; ТЯГА — ВРАЩЕНИЕ &nbsp;·&nbsp; КЛИК — БРОНЬ &nbsp;·&nbsp; НАВЕДЕНИЕ — ИНФО</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+/* ═══════════════════════════════════════════════════════
+   DATA — характеристики компьютеров
+═══════════════════════════════════════════════════════ */
+const PCS = [
+  {id:1, specs:'Intel Core i9-14900K  ·  RTX 4090  ·  64GB DDR5  ·  360Hz 27"', price:'250 BYN/ч', tier:'vip'},
+  {id:2, specs:'Intel Core i9-13900K  ·  RTX 4080  ·  32GB DDR5  ·  240Hz 27"', price:'200 BYN/ч', tier:'pro'},
+  {id:3, specs:'AMD Ryzen 9 7950X  ·  RTX 4080 Super  ·  32GB DDR5  ·  240Hz 27"', price:'200 BYN/ч', tier:'pro'},
+  {id:4, specs:'Intel Core i7-14700K  ·  RTX 4070 Ti  ·  32GB DDR4  ·  165Hz 27"', price:'150 BYN/ч', tier:'mid'},
+  {id:5, specs:'AMD Ryzen 9 7900X  ·  RTX 4070 Super  ·  32GB DDR4  ·  165Hz 27"', price:'150 BYN/ч', tier:'mid'},
+  {id:6, specs:'Intel Core i7-13700K  ·  RTX 4070  ·  16GB DDR4  ·  144Hz 24"', price:'120 BYN/ч', tier:'mid'},
+  {id:7, specs:'AMD Ryzen 7 7700X  ·  RTX 3080 Ti  ·  16GB DDR4  ·  144Hz 24"', price:'100 BYN/ч', tier:'std'},
+  {id:8, specs:'Intel Core i5-13600K  ·  RTX 3070 Ti  ·  16GB DDR4  ·  144Hz 24"', price:'80 BYN/ч',  tier:'std'},
+];
+
+/* базовый цвет свечения экрана по уровню места */
+const TIER_EMI = {vip:0x003d88, pro:0x002a66, mid:0x001e44, std:0x001133};
+
+const booked = Array(PCS.length).fill(false);
+
+/* ═══════════════════════════════════════════════════════
+   RENDERER + SCENE + CAMERA
+═══════════════════════════════════════════════════════ */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x010209);
+scene.fog = new THREE.FogExp2(0x010209, 0.021);
+
+const camera = new THREE.PerspectiveCamera(54, innerWidth/innerHeight, 0.1, 200);
+camera.position.set(0, 19, 25);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+/* CSS2D renderer для label-ов над станциями */
+const css2d = new CSS2DRenderer();
+css2d.setSize(innerWidth, innerHeight);
+Object.assign(css2d.domElement.style, {
+  position:'fixed', top:'0', left:'0',
+  pointerEvents:'none', zIndex:'50'
+});
+document.body.appendChild(css2d.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+Object.assign(controls, {
+  enableDamping:true, dampingFactor:0.06,
+  minDistance:6, maxDistance:50,
+  maxPolarAngle: Math.PI/2.05
+});
+
+/* ═══════════════════════════════════════════════════════
+   LIGHTS
+═══════════════════════════════════════════════════════ */
+scene.add(new THREE.AmbientLight(0x0b0b22, 0.85));
+
+function ptLight(col, intensity, dist, x, y, z) {
+  const l = new THREE.PointLight(col, intensity, dist);
+  l.position.set(x, y, z);
+  l.castShadow = true;
+  scene.add(l);
+  return l;
+}
+
+const lBlue   = ptLight(0x0066ff, 4.0, 44, -11, 7, -11);
+const lPurple = ptLight(0x8800ff, 4.0, 44,  11, 7, -11);
+const lPink   = ptLight(0xff0077, 3.0, 38,   0, 7,  11);
+const lCyan   = ptLight(0x00ffee, 2.0, 30,   0, 9.5, 0);
+
+/* ═══════════════════════════════════════════════════════
+   ROOM  (30 × 9 × 30)
+═══════════════════════════════════════════════════════ */
+const RW=30, RH=9, RD=30;
+const HW=RW/2, HD=RD/2;
+
+/* отражающий пол */
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(RW, RD),
+  new THREE.MeshStandardMaterial({color:0x030318, roughness:0.08, metalness:0.96})
+);
+floor.rotation.x = -Math.PI/2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+/* сетка */
+const grid = new THREE.GridHelper(RW, 30, 0x001133, 0x000b22);
+grid.position.y = 0.015;
+scene.add(grid);
+
+/* стены */
+const wMat = new THREE.MeshStandardMaterial({color:0x06061a, roughness:0.94, metalness:0.06});
+function wall(gw, gh, gd, x, y, z) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(gw,gh,gd), wMat);
+  m.position.set(x, y, z); m.receiveShadow=true; scene.add(m);
+}
+wall(RW+.6, RH, .3,   0, RH/2, -HD);        // задняя
+wall(.3, RH, RD+.6,  -HW, RH/2,  0);        // левая
+wall(.3, RH, RD+.6,   HW, RH/2,  0);        // правая
+wall(RW+.6, .3, RD+.6, 0, RH,   0);         // потолок
+
+/* ═══════════════════════════════════════════════════════
+   NEON TUBES по периметру
+═══════════════════════════════════════════════════════ */
+function neonTube(x1,y1,z1, x2,y2,z2, col, gi=1.6) {
+  const dir = new THREE.Vector3(x2-x1, y2-y1, z2-z1);
+  const len = dir.length();
+  const mid = new THREE.Vector3((x1+x2)/2, (y1+y2)/2, (z1+z2)/2);
+  const m = new THREE.MeshStandardMaterial({color:col, emissive:col, emissiveIntensity:5});
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(.042,.042,len,8), m);
+  mesh.position.copy(mid);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.normalize());
+  scene.add(mesh);
+  const pl = new THREE.PointLight(col, gi, 15);
+  pl.position.copy(mid);
+  scene.add(pl);
+}
+
+const cy = RH - .25;
+const tw = HW-.22, td = HD-.22;
+/* потолочные трубки */
+neonTube(-tw,cy,-td,  tw,cy,-td,  0x0088ff, 2.2);   // задняя синяя
+neonTube(-tw,cy, td,  tw,cy, td,  0xff0077, 2.2);   // передняя розовая
+neonTube(-tw,cy,-td, -tw,cy, td,  0x8800ff, 2.2);   // левая фиолетовая
+neonTube( tw,cy,-td,  tw,cy, td,  0x00ffcc, 2.2);   // правая бирюзовая
+/* нижние акценты */
+neonTube(-tw,1.1,-td,  tw,1.1,-td, 0x00ccff, 1.0);
+neonTube(-tw,1.1,-td, -tw,1.1, td, 0x5500ff, 1.0);
+neonTube( tw,1.1,-td,  tw,1.1, td, 0xff0055, 1.0);
+
+/* ═══════════════════════════════════════════════════════
+   CYBERX ГОМЕЛЬ — вывеска
+═══════════════════════════════════════════════════════ */
+function makeSignTex(text, cw, ch, mainCol, glowCol) {
+  const cv = document.createElement('canvas');
+  cv.width = cw; cv.height = ch;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cw,ch);
+  ctx.font = `bold ${Math.floor(ch*0.42)}px 'Courier New', monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  /* многослойное свечение */
+  for (let i=5; i>=1; i--) {
+    ctx.shadowColor   = glowCol;
+    ctx.shadowBlur    = i * 16;
+    ctx.globalAlpha   = i===1 ? 1 : 0.28;
+    ctx.fillStyle     = i===1 ? mainCol : glowCol;
+    ctx.fillText(text, cw/2, ch/2);
+  }
+  ctx.globalAlpha = 1;
+  return new THREE.CanvasTexture(cv);
+}
+
+const signMesh = new THREE.Mesh(
+  new THREE.PlaneGeometry(13.5, 3.4),
+  new THREE.MeshBasicMaterial({
+    map: makeSignTex('CYBERX ГОМЕЛЬ', 1024, 256, '#ffffff', '#00d4ff'),
+    transparent: true, side: THREE.DoubleSide
+  })
+);
+signMesh.position.set(0, RH-1.65, -HD+.55);
+scene.add(signMesh);
+
+/* подчёркивающая неоновая черта */
+const ulMat = new THREE.MeshStandardMaterial({color:0x00d4ff, emissive:0x00d4ff, emissiveIntensity:7});
+const ul = new THREE.Mesh(new THREE.BoxGeometry(13.5,.055,.055), ulMat);
+ul.position.set(0, RH-3.35, -HD+.55);
+scene.add(ul);
+
+const signLight = new THREE.PointLight(0x00d4ff, 3.5, 16);
+signLight.position.set(0, RH-2, -HD+1.8);
+scene.add(signLight);
+
+/* ═══════════════════════════════════════════════════════
+   СЕРВЕРНАЯ СТОЙКА (декоративная)
+═══════════════════════════════════════════════════════ */
+function serverRack(x, z) {
+  const g = new THREE.Group();
+  const frame = new THREE.Mesh(
+    new THREE.BoxGeometry(0.8, 2.4, 0.55),
+    new THREE.MeshStandardMaterial({color:0x0a0a1c, roughness:.4, metalness:.8})
+  );
+  frame.position.y = 1.2;
+  g.add(frame);
+  for (let row=0; row<6; row++) {
+    const srv = new THREE.Mesh(
+      new THREE.BoxGeometry(0.72, 0.26, 0.5),
+      new THREE.MeshStandardMaterial({color:0x111128, roughness:.3, metalness:.9})
+    );
+    srv.position.set(0, 0.2 + row*0.37, 0.025);
+    /* LED индикатор */
+    const ledCol = row%2===0 ? 0x00ff66 : 0x00aaff;
+    const led = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04,.04,.01),
+      new THREE.MeshStandardMaterial({color:ledCol, emissive:ledCol, emissiveIntensity:5})
+    );
+    led.position.set(0.28, 0.2+row*0.37, 0.28);
+    g.add(srv); g.add(led);
+  }
+  g.position.set(x, 0, z);
+  scene.add(g);
+}
+serverRack(-HW+1.2, -HD+1.4);
+serverRack(-HW+1.2,  HD-1.4);
+serverRack( HW-1.2, -HD+1.4);
+
+/* ═══════════════════════════════════════════════════════
+   COMPUTER STATIONS (8 шт.)
+═══════════════════════════════════════════════════════ */
+const SPOTS = [
+  [-9.5,-8], [-3.2,-8], [3.2,-8], [9.5,-8],
+  [-9.5, 2], [-3.2, 2], [3.2, 2], [9.5, 2],
+];
+
+const stations   = [];
+const pickMeshes = [];   // для raycaster
+
+for (let i=0; i<PCS.length; i++) {
+  const [px,pz] = SPOTS[i];
+  const g = new THREE.Group();
+  g.position.set(px, 0, pz);
+
+  /* ── стол ── */
+  const deskMat = new THREE.MeshStandardMaterial({
+    color:0x0e0e24, roughness:.42, metalness:.72,
+    emissive: new THREE.Color(0x000000), emissiveIntensity:0
+  });
+  const desk = new THREE.Mesh(new THREE.BoxGeometry(2.85,.1,1.65), deskMat);
+  desk.position.y=.86; desk.castShadow=desk.receiveShadow=true;
+  g.add(desk);
+
+  /* светящаяся полоска переднего ребра стола */
+  const edgeMat = new THREE.MeshStandardMaterial({
+    color:0x002255, emissive:0x002255, emissiveIntensity:2.5
+  });
+  const edge = new THREE.Mesh(new THREE.BoxGeometry(2.87,.036,.036), edgeMat);
+  edge.position.set(0,.888,.84);
+  g.add(edge);
+
+  /* ножки */
+  const legM = new THREE.MeshStandardMaterial({color:0x09091e, metalness:.85, roughness:.15});
+  [[-1.2,-.65],[-1.2,.65],[1.2,-.65],[1.2,.65]].forEach(([lx,lz])=>{
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(.07,.86,.07), legM);
+    leg.position.set(lx,.43,lz); leg.castShadow=true; g.add(leg);
+  });
+
+  /* ── подставка монитора ── */
+  const stM = new THREE.MeshStandardMaterial({color:0x060616, metalness:.92, roughness:.1});
+  const sBase = new THREE.Mesh(new THREE.CylinderGeometry(.22,.3,.04,12), stM);
+  sBase.position.set(0,.92,-.36); g.add(sBase);
+  const sPole = new THREE.Mesh(new THREE.CylinderGeometry(.042,.042,.52,8), stM);
+  sPole.position.set(0,1.18,-.36); g.add(sPole);
+
+  /* ── рамка монитора ── */
+  const monM = new THREE.MeshStandardMaterial({color:0x080818, roughness:.22, metalness:.82});
+  const mon = new THREE.Mesh(new THREE.BoxGeometry(1.72,1.06,.085), monM);
+  mon.position.set(0,1.92,-.36); mon.castShadow=true; g.add(mon);
+
+  /* ── экран (canvas + emissive glow) ── */
+  const sc = document.createElement('canvas');
+  sc.width=512; sc.height=256;
+  const sctx = sc.getContext('2d');
+  /* фон с градиентом */
+  const bg = sctx.createLinearGradient(0,0,0,256);
+  bg.addColorStop(0,'#001840'); bg.addColorStop(1,'#000a22');
+  sctx.fillStyle=bg; sctx.fillRect(0,0,512,256);
+  /* скан-линии */
+  for(let sl=0; sl<256; sl+=4){
+    sctx.fillStyle='rgba(0,0,0,0.22)'; sctx.fillRect(0,sl,512,2);
+  }
+  /* номер ПК */
+  sctx.font='bold 78px Courier New';
+  sctx.textAlign='center'; sctx.textBaseline='middle';
+  sctx.shadowColor='#00aaff'; sctx.shadowBlur=28;
+  sctx.fillStyle='#00aaff';
+  sctx.fillText(`ПК #${i+1}`, 256, 105);
+  /* уровень места */
+  sctx.font='bold 22px Courier New';
+  sctx.fillStyle='rgba(0,150,255,0.55)';
+  sctx.shadowBlur=0;
+  sctx.fillText(PCS[i].tier.toUpperCase(), 256, 168);
+  /* рамка экрана */
+  sctx.strokeStyle='rgba(0,160,255,0.28)';
+  sctx.lineWidth=3;
+  sctx.strokeRect(4,4,504,248);
+
+  const scrTex = new THREE.CanvasTexture(sc);
+  const emiBase = TIER_EMI[PCS[i].tier];
+
+  const screenMat = new THREE.MeshStandardMaterial({
+    map: scrTex,
+    emissive: new THREE.Color(emiBase),
+    emissiveIntensity: 0.55,
+    roughness:.04, metalness:0
+  });
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(1.57,.94), screenMat);
+  screen.position.set(0,1.92,-.31);
+  screen.userData.stationIndex = i;
+  g.add(screen);
+  pickMeshes.push(screen);
+
+  /* подсветка экрана */
+  const sGlow = new THREE.PointLight(0x0055aa, .75, 3.8);
+  sGlow.position.set(0, 1.92, -.18);
+  g.add(sGlow);
+
+  /* ── клавиатура ── */
+  const kbM = new THREE.MeshStandardMaterial({color:0x0b0b1f, roughness:.5, metalness:.45});
+  const kb = new THREE.Mesh(new THREE.BoxGeometry(.88,.024,.3), kbM);
+  kb.position.set(0,.913,.2); g.add(kb);
+  /* RGB-полоска (анимируется) */
+  const rgbMat = new THREE.MeshStandardMaterial({
+    color:0x4400aa, emissive:0x4400aa, emissiveIntensity:3
+  });
+  const rgb = new THREE.Mesh(new THREE.BoxGeometry(.86,.01,.012), rgbMat);
+  rgb.position.set(0,.926,.07); g.add(rgb);
+
+  /* ── мышь ── */
+  const mouse3 = new THREE.Mesh(new THREE.BoxGeometry(.11,.022,.2), kbM);
+  mouse3.position.set(.58,.912,.2); g.add(mouse3);
+
+  /* ── игровое кресло ── */
+  const cM = new THREE.MeshStandardMaterial({color:0x0c0c20, roughness:.7});
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(.84,.07,.82), cM);
+  seat.position.set(0,.52,.97); g.add(seat);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(.84,.92,.072), cM);
+  back.position.set(0,.98,1.32); g.add(back);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(.74,.28,.072), cM);
+  head.position.set(0,1.5,1.32); g.add(head);
+  /* подлокотники */
+  [[-0.35,.85],[.35,.85]].forEach(([ax])=>{
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(.06,.28,.65), cM);
+    arm.position.set(ax,.78,1.0); g.add(arm);
+  });
+  /* ножки кресла */
+  [[-0.3,.72],[-0.3,1.18],[.3,.72],[.3,1.18]].forEach(([cx,cz])=>{
+    const cl = new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.52,6), stM);
+    cl.position.set(cx,.26,cz); g.add(cl);
+  });
+
+  /* ── CSS2D label ── */
+  const ld = document.createElement('div');
+  ld.className='slbl';
+  ld.textContent=`ПК #${i+1}`;
+  const lobj = new CSS2DObject(ld);
+  lobj.position.set(0, 3.4, -.36);
+  g.add(lobj);
+
+  scene.add(g);
+
+  stations.push({
+    index: i, group: g, screen, screenMat, deskMat, edgeMat,
+    sGlow, rgbMat, labelDiv: ld, emiBase
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   ЧАСТИЦЫ — кибер-пыль
+═══════════════════════════════════════════════════════ */
+const NP = 2200;
+const pPos = new Float32Array(NP*3);
+const pCol = new Float32Array(NP*3);
+const pVel = new Float32Array(NP);
+const NCOLS = [[0,.55,1],[.5,0,1],[1,0,.5],[0,1,.9],[.15,.75,1],[.8,0,1]];
+
+for (let i=0; i<NP; i++) {
+  pPos[i*3]   = (Math.random()-.5)*RW;
+  pPos[i*3+1] = Math.random()*RH;
+  pPos[i*3+2] = (Math.random()-.5)*RD;
+  pVel[i]     = .003 + Math.random()*.006;
+  const c = NCOLS[Math.floor(Math.random()*NCOLS.length)];
+  pCol[i*3]=c[0]; pCol[i*3+1]=c[1]; pCol[i*3+2]=c[2];
+}
+const pG = new THREE.BufferGeometry();
+pG.setAttribute('position', new THREE.BufferAttribute(pPos,3));
+pG.setAttribute('color',    new THREE.BufferAttribute(pCol,3));
+const pM = new THREE.PointsMaterial({
+  size:.055, vertexColors:true, transparent:true, opacity:.75, sizeAttenuation:true
+});
+scene.add(new THREE.Points(pG, pM));
+
+/* ═══════════════════════════════════════════════════════
+   RAYCASTER — HOVER & CLICK
+═══════════════════════════════════════════════════════ */
+const rc     = new THREE.Raycaster();
+const mNDC   = new THREE.Vector2();
+let hovIdx   = -1;
+let pendIdx  = -1;
+
+const tooltip = document.getElementById('tooltip');
+const overlay = document.getElementById('modal-overlay');
+const mtext   = document.getElementById('mtext');
+
+/* ─ эффект наведения ─ */
+function applyHover(idx, on) {
+  if (booked[idx]) return;
+  const s = stations[idx];
+  if (on) {
+    s.screenMat.emissive.setHex(0x0066dd);
+    s.screenMat.emissiveIntensity = 2.8;
+    s.deskMat.emissive.setHex(0x001a44);
+    s.deskMat.emissiveIntensity  = 0.85;
+    s.edgeMat.emissiveIntensity  = 8;
+    s.sGlow.intensity = 3.8;
+    s.sGlow.color.setHex(0x0088ff);
+  } else {
+    s.screenMat.emissive.setHex(s.emiBase);
+    s.screenMat.emissiveIntensity = 0.55;
+    s.deskMat.emissive.setHex(0x000000);
+    s.deskMat.emissiveIntensity  = 0;
+    s.edgeMat.emissiveIntensity  = 2.5;
+    s.sGlow.intensity = 0.75;
+    s.sGlow.color.setHex(0x0055aa);
+  }
+}
+
+/* ─ забронировано ─ */
+function applyBooked(idx) {
+  const s = stations[idx];
+  s.screenMat.emissive.setHex(0x440000);
+  s.screenMat.emissiveIntensity = 1.6;
+  s.edgeMat.color.setHex(0x330000);
+  s.edgeMat.emissive.setHex(0x440000);
+  s.edgeMat.emissiveIntensity = 3.5;
+  s.sGlow.color.setHex(0xff0000);
+  s.sGlow.intensity = 1.2;
+  s.labelDiv.classList.add('bkd');
+}
+
+/* ─ снятие брони ─ */
+function applyFree(idx) {
+  const s = stations[idx];
+  s.screenMat.emissive.setHex(s.emiBase);
+  s.screenMat.emissiveIntensity = 0.55;
+  s.edgeMat.color.setHex(0x002255);
+  s.edgeMat.emissive.setHex(0x002255);
+  s.edgeMat.emissiveIntensity = 2.5;
+  s.sGlow.color.setHex(0x0055aa);
+  s.sGlow.intensity = 0.75;
+  s.labelDiv.classList.remove('bkd');
+}
+
+function updateNDC(e) {
+  mNDC.x =  (e.clientX / innerWidth)  * 2 - 1;
+  mNDC.y = -(e.clientY / innerHeight) * 2 + 1;
+}
+
+window.addEventListener('mousemove', e => {
+  updateNDC(e);
+  rc.setFromCamera(mNDC, camera);
+  const hits = rc.intersectObjects(pickMeshes);
+
+  if (hits.length > 0) {
+    const idx = hits[0].object.userData.stationIndex;
+    if (hovIdx !== idx) {
+      if (hovIdx >= 0) applyHover(hovIdx, false);
+      hovIdx = idx;
+      applyHover(idx, true);
+    }
+    const pc = PCS[idx];
+    tooltip.style.display = 'block';
+    tooltip.innerHTML =
+      `<b>ПК #${pc.id}</b> &nbsp;|&nbsp; ${pc.specs}`
+      + ` &nbsp;|&nbsp; <span style="color:#ff00cc">${pc.price}</span>`
+      + (booked[idx] ? ' &nbsp;<span style="color:#ff4444">[ЗАНЯТО]</span>' : '');
+    document.body.style.cursor = booked[idx] ? 'not-allowed' : 'pointer';
+  } else {
+    if (hovIdx >= 0) { applyHover(hovIdx, false); hovIdx = -1; }
+    tooltip.style.display = 'none';
+    document.body.style.cursor = 'default';
+  }
+});
+
+window.addEventListener('click', e => {
+  updateNDC(e);
+  rc.setFromCamera(mNDC, camera);
+  const hits = rc.intersectObjects(pickMeshes);
+  if (!hits.length) return;
+  const idx = hits[0].object.userData.stationIndex;
+  if (booked[idx]) return;
+
+  pendIdx = idx;
+  const pc = PCS[idx];
+  mtext.innerHTML =
+    `<b style="color:#00d4ff;font-size:17px">ПК #${pc.id}</b><br>`
+    + `<span style="font-size:11px;color:#666">${pc.specs}</span><br>`
+    + `<span style="color:#ff00cc;font-size:15px;font-weight:bold">${pc.price}</span><br><br>`
+    + `<span style="color:#ddd;font-size:14px">Забронировать это место на <b style="color:#00d4ff">2 часа</b>?</span>`;
+  overlay.style.display = 'flex';
+  controls.enabled = false;
+});
+
+document.getElementById('byes').onclick = () => {
+  if (pendIdx >= 0) { booked[pendIdx]=true; applyBooked(pendIdx); buildPanel(); }
+  closeModal();
+};
+document.getElementById('bno').onclick = closeModal;
+overlay.addEventListener('click', e => { if (e.target===overlay) closeModal(); });
+
+function closeModal() {
+  overlay.style.display = 'none';
+  controls.enabled = true;
+  pendIdx = -1;
+}
+
+/* ═══════════════════════════════════════════════════════
+   UI PANEL — список мест
+═══════════════════════════════════════════════════════ */
+function buildPanel() {
+  const list = document.getElementById('pclist');
+  list.innerHTML = '';
+  PCS.forEach((pc, i) => {
+    const row = document.createElement('div');
+    row.className = 'pc-row';
+    const b = booked[i];
+    row.innerHTML =
+      `<span class="pc-nm">ПК #${pc.id}</span>`
+      + `<span class="${b?'s-busy':'s-free'}">`
+      + (b
+        ? `Занято <span class="cx" data-i="${i}" title="Отменить">✕</span>`
+        : 'Свободно')
+      + `</span>`;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('.cx').forEach(el => {
+    el.onclick = e => {
+      e.stopPropagation();
+      const i = +el.dataset.i;
+      booked[i] = false;
+      applyFree(i);
+      buildPanel();
+    };
+  });
+}
+buildPanel();
+
+/* ═══════════════════════════════════════════════════════
+   ANIMATION LOOP
+═══════════════════════════════════════════════════════ */
+const clk = new THREE.Clock();
+
+(function tick() {
+  requestAnimationFrame(tick);
+  const t = clk.getElapsedTime();
+
+  /* частицы летят вверх */
+  for (let i=0; i<NP; i++) {
+    pPos[i*3+1] += pVel[i];
+    if (pPos[i*3+1] > RH) {
+      pPos[i*3+1] = 0;
+      pPos[i*3]   = (Math.random()-.5)*RW;
+      pPos[i*3+2] = (Math.random()-.5)*RD;
+    }
+  }
+  pG.attributes.position.needsUpdate = true;
+
+  /* пульсация точечных источников */
+  lBlue.intensity   = 3.8 + Math.sin(t*1.42) * .95;
+  lPurple.intensity = 3.8 + Math.sin(t*1.73 + 1.1) * .95;
+  lPink.intensity   = 2.8 + Math.sin(t*1.21 + 2.3) * .80;
+  signLight.intensity = 3.0 + Math.sin(t*2.6) * 1.1;
+
+  /* радужная RGB-клавиатура */
+  stations.forEach((s, i) => {
+    const hue = ((t * 55 + i * 45) % 360) / 360;
+    s.rgbMat.color.setHSL(hue, .95, .45);
+    s.rgbMat.emissive.setHSL(hue, .95, .45);
+  });
+
+  /* мигание светодиодов серверных стоек (аппроксимация через глобальные огни) */
+  lCyan.intensity = 1.8 + Math.sin(t*3.1 + 0.5) * .5;
+
+  controls.update();
+  renderer.render(scene, camera);
+  css2d.render(scene, camera);
+})();
+
+/* ═══════════════════════════════════════════════════════
+   RESIZE
+═══════════════════════════════════════════════════════ */
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  css2d.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>

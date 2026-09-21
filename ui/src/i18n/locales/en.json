@@ -1,0 +1,182 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "stats": "In numbers",
+    "advantages": "Advantages",
+    "tariffs": "Tariffs",
+    "tournaments": "Tournaments",
+    "events": "Events",
+    "teams": "Rankings",
+    "reviews": "Reviews",
+    "faq": "FAQ",
+    "contact": "Contact"
+  },
+  "hero": {
+    "badge": "Premium Esports · Gomel",
+    "module_badge": "NEXT-GEN INTERFACE",
+    "slogan": "The next level of your game",
+    "online": "Online",
+    "scroll_label": "Scroll",
+    "scroll_to_about": "Scroll to about",
+    "deck_live": "Live now",
+    "stations": "Stations",
+    "disciplines": "Titles",
+    "cta_tournaments": "Tournaments",
+    "cta_tariffs": "Tariffs",
+    "cta_contact": "Contact"
+  },
+  "about": {
+    "hardware": "Flagship GPU",
+    "monitors": "Pro monitors",
+    "city_rank": "In the city"
+  },
+  "sections": {
+    "about": "About",
+    "about_sub": "Manifest and infrastructure",
+    "about_heading_suffix": " · About",
+    "stats": "CyberX in numbers",
+    "stats_sub": "Scale you can feel",
+    "stats_heading_suffix": " in numbers",
+    "stats_community": "COMMUNITY",
+    "stats_footnote": "From 32 stations to an ecosystem that grows every day",
+    "stats_chip_club": "CYBERX",
+    "stats_chip_city": "GOMEL",
+    "stats_chip_esports": "ESPORTS",
+    "stats_chip_always": "24/7",
+    "tariffs": "Tariffs",
+    "tariffs_sub": "Standard · Stage · Bootcamp · PSS Room",
+    "advantages": "Advantages",
+    "advantages_sub": "Why players choose CyberX",
+    "advantages_heading_suffix": " EDGE",
+    "tournaments": "Tournaments",
+    "tournaments_sub": "CyberX League and open cups",
+    "events": "Events",
+    "events_sub": "Club activities",
+    "teams": "Top teams",
+    "teams_sub": "League participant rankings",
+    "reviews": "Reviews",
+    "reviews_sub": "Community voice",
+    "faq": "FAQ",
+    "faq_sub": "Quick answers",
+    "contact": "Contact",
+    "contact_sub": "Find us",
+    "games": "Titles"
+  },
+  "stats": {
+    "pcs": "Gaming PCs",
+    "tournaments": "Tournaments held",
+    "teams": "Rated teams",
+    "players": "Community players"
+  },
+  "tariffs": {
+    "book": "Book now",
+    "currency": "BYN",
+    "weekday": "Weekdays",
+    "weekend": "Weekends",
+    "weekday_weekend": "weekday / weekend",
+    "time_slots": "Time slots",
+    "summer_hours": "08:00–17:00",
+    "zones": {
+      "standard": "Standard",
+      "stage": "Stage",
+      "bootcamp": "Bootcamp",
+      "pss": "PSS Room"
+    },
+    "rows": {
+      "1h": "1 hour",
+      "3h": "3 hours",
+      "5h": "5 hours",
+      "fullday": "Full day",
+      "summer": "Summer"
+    },
+    "slots": {
+      "morning": "Morning",
+      "day": "Day",
+      "night": "Night"
+    }
+  },
+  "advantages": {
+    "hardware": { "title": "Top hardware", "desc": "RTX 40-series & 360Hz monitors", "tag": "PERFORMANCE" },
+    "internet": { "title": "1 Gbps", "desc": "Stable ping for competition", "tag": "NETWORK" },
+    "tournaments": { "title": "Tournaments", "desc": "CyberX League every season", "tag": "COMPETITIVE" },
+    "coaches": { "title": "Coaches", "desc": "Demo reviews and scrims", "tag": "COACHING" },
+    "lounge": { "title": "Lounge", "desc": "Chill between matches", "tag": "COMFORT" },
+    "events": { "title": "Events", "desc": "Streams, cosplay, community", "tag": "COMMUNITY" }
+  },
+  "reviews": {
+    "r1": { "text": "Best club in Gomel. Top hardware, insane vibe. CS2 tournaments hit different.", "author": "Artem K.", "role": "CS2 player" },
+    "r2": { "text": "VIP room for our team was perfect. Coach helped us reach the league finals.", "author": "Maria V.", "role": "Valorant captain" },
+    "r3": { "text": "Red neon, premium feel. I come every Friday for LoL Night.", "author": "Denis L.", "role": "LoL player" }
+  },
+  "tournament": {
+    "prize": "Prize pool",
+    "register": "Register",
+    "rules": "Rules",
+    "countdown": "Starts in",
+    "date": "Date",
+    "status_registration": "Registration",
+    "status_upcoming": "Soon",
+    "status_ongoing": "Live",
+    "status_finished": "Finished"
+  },
+  "team": {
+    "rating": "Rating",
+    "winrate": "Win Rate",
+    "wins": "Wins",
+    "losses": "Losses",
+    "wins_short": "W",
+    "losses_short": "L"
+  },
+  "event": {
+    "tournament": "Tournament",
+    "bootcamp": "Bootcamp",
+    "community": "Community",
+    "days_ago": "Days ago",
+    "upcoming": "Soon"
+  },
+  "contact": { "phone": "Phone", "address": "Address", "social": "Social" },
+  "social": {
+    "instagram": "Instagram",
+    "telegram": "Telegram"
+  },
+  "footer": {
+    "rights": "CyberX Community. All rights reserved.",
+    "made": "Premium esports · Gomel",
+    "rules": "Rules",
+    "follow": "Follow"
+  },
+  "loading": "Loading...",
+  "error": "Failed to load data. Make sure the API is running on port 5006.",
+  "admin": {
+    "login_title": "Admin Panel",
+    "login_hint": "Enter API key to manage tournaments",
+    "api_key": "API key",
+    "enter": "Sign in",
+    "login_error": "Invalid key",
+    "back_site": "Back to site",
+    "tournaments": "Tournament management",
+    "new_tournament": "New tournament",
+    "edit_tournament": "Edit tournament",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "logout": "Log out",
+    "back_list": "Back to list",
+    "col_title": "Title",
+    "col_game": "Game",
+    "col_status": "Status",
+    "col_prize": "Prize",
+    "col_featured": "Featured",
+    "field_title": "Title",
+    "field_description": "Description",
+    "field_start": "Start date",
+    "field_end": "End date",
+    "field_registration": "Registration URL",
+    "field_rules": "Rules URL",
+    "confirm_delete": "Delete this tournament?",
+    "load_error": "Load failed. Check your API key.",
+    "save_error": "Failed to save"
+  }
+}
